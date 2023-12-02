@@ -34,11 +34,12 @@ class OpenAi {
             // we concurrently execute each max batch of text chunks possible.
             // Refer to constructor embeddingChunkLimit for more info.
             const embeddingRequests = [];
+            console.log((0, helpers_1.toChunks)(textChunks, this.embeddingChunkLimit));
             for (const chunk of (0, helpers_1.toChunks)(textChunks, this.embeddingChunkLimit)) {
                 embeddingRequests.push(new Promise((resolve) => {
                     this.openai.embeddings
                         .create({
-                        input: chunk[0],
+                        input: chunk,
                         model: 'text-embedding-ada-002',
                     })
                         .then((res) => {
@@ -48,6 +49,7 @@ class OpenAi {
                         });
                     })
                         .catch((e) => {
+                        console.log(e);
                         resolve({ data: [], error: e === null || e === void 0 ? void 0 : e.error });
                     });
                 }));

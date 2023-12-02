@@ -37,7 +37,7 @@ class PineconeDB {
                 apiKey: process.env.PINECONE_API_KEY,
                 environment: process.env.PINECONE_ENVIRONMENT,
             });
-            const pineconeIndex = client.index(process.env.PINECONE_INDEX);
+            const pineconeIndex = client.Index(process.env.PINECONE_INDEX);
             const { status } = yield client.describeIndex(process.env.PINECONE_INDEX);
             if (!(status === null || status === void 0 ? void 0 : status.ready))
                 throw new Error('Pinecode::Index not ready.');
@@ -53,7 +53,7 @@ class PineconeDB {
             // return namespaces.hasOwnProperty(namespace) ? namespaces[namespace] : null;
         });
     }
-    static addDocumentToNamespace(namespace, documentData = {}, fullFilePath) {
+    static addDocumentToNamespace(namespace, documentData, fullFilePath) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { pageContent, docId } = documentData, metadata = __rest(documentData, ["pageContent", "docId"]);
@@ -91,7 +91,7 @@ class PineconeDB {
                     chunkOverlap: 20,
                 });
                 const textChunks = yield textSplitter.splitText(pageContent);
-                console.log('Chunks created from document:', textChunks.length, textChunks);
+                console.log('Chunks created from document:', textChunks.length);
                 const LLMConnector = (0, helpers_1.getLLMProvider)();
                 const documentVectors = [];
                 const vectors = [];
@@ -116,24 +116,20 @@ class PineconeDB {
                 if (vectors.length > 0) {
                     const chunks = [];
                     const { pineconeIndex } = yield this.connect();
-                    console.log('Inserting vectorized chunks into Pinecone.');
                     for (const chunk of (0, helpers_1.toChunks)(vectors, 100)) {
                         console.log('Inserting vectorized chunks into Pinecone.');
-                        chunks.push(chunk);
-                        // await pineconeIndex.upsert({
-                        //   upsertRequest: {
-                        //     vectors: [...chunk],
-                        //     namespace,
-                        //   },
-                        // });
+                        chunks.push(chunk[0]);
                     }
+                    pineconeIndex.upsert(chunks);
                 }
                 return {
                     documentVectors,
                     vectors,
                 };
             }
-            catch (error) { }
+            catch (error) {
+                console.log(error);
+            }
         });
     }
 }

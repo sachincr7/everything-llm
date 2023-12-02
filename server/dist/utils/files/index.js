@@ -29,7 +29,8 @@ function fileData(filePath) {
         if (!fileExists)
             return null;
         const data = fs_1.default.readFileSync(fullPath, 'utf8');
-        return JSON.parse(data);
+        const parsedData = JSON.parse(data);
+        return parsedData;
     });
 }
 exports.fileData = fileData;

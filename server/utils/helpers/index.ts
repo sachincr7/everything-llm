@@ -12,11 +12,7 @@ export function getVectorDbClass() {
 }
 
 export function toChunks(
-  arr: {
-    id: string;
-    values: number[];
-    metadata: any;
-  }[],
+  arr: any[],
   size: number
 ) {
   return Array.from({ length: Math.ceil(arr.length / size) }, (_v, i) => arr.slice(i * size, i * size + size));

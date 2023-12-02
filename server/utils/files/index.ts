@@ -2,9 +2,20 @@ import path from 'path';
 import fs from 'fs';
 import { v5 as uuidv5 } from 'uuid';
 
+export type DocumentData = {
+  id: string,
+  url: string,
+  title: string,
+  published: string,
+  wordCount: number,
+  pageContent: string,
+  token_count_estimate: number
+  docId?: string
+}
+
 // Should take in a folder that is a subfolder of documents
 // eg: youtube-subject/video-123.json
-async function fileData(filePath: string) {
+async function fileData(filePath: string): Promise<DocumentData | null> {
   if (!filePath) throw new Error('No docPath provided in request');
 
   const fullPath =
@@ -16,7 +27,8 @@ async function fileData(filePath: string) {
   if (!fileExists) return null;
 
   const data = fs.readFileSync(fullPath, 'utf8');
-  return JSON.parse(data);
+  const parsedData: DocumentData = JSON.parse(data);
+  return parsedData;
 }
 
 // Searches the vector-cache folder for existing information so we dont have to re-embed a

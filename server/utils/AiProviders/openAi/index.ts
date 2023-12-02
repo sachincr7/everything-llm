@@ -30,14 +30,15 @@ export class OpenAi {
     // Because there is a hard POST limit on how many chunks can be sent at once to OpenAI (~8mb)
     // we concurrently execute each max batch of text chunks possible.
     // Refer to constructor embeddingChunkLimit for more info.
-
+ 
     const embeddingRequests: Promise<CreateEmbeddingResponseType>[] = [];
+    console.log(toChunks(textChunks, this.embeddingChunkLimit));
     for (const chunk of toChunks(textChunks, this.embeddingChunkLimit)) {
       embeddingRequests.push(
         new Promise((resolve) => {
           this.openai.embeddings
             .create({
-              input: chunk[0] ,
+              input: chunk, 
               model: 'text-embedding-ada-002',
             })
             .then((res) => {
@@ -47,6 +48,8 @@ export class OpenAi {
               });
             })
             .catch((e: any) => {
+              console.log(e);
+
               resolve({ data: [], error: e?.error });
             });
         })
