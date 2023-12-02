@@ -1,0 +1,36 @@
+### create a user
+POST http://localhost:4001/api/admin/users/new
+content-type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwIjoiamFrZTEyMyIsImlhdCI6MTcwMDI5NjM3OCwiZXhwIjoxNzAyODg4Mzc4fQ.ox_d4v8OWD3UCkBXNLhZ0Ya53Q19m31ZzqWQ8Dhscmc
+
+{
+  "username": "blake@gmail.com",
+  "password": "jake123"
+}
+
+### login a user
+POST http://localhost:4001/api/request-token
+content-type: application/json
+
+{
+  "username": "blake@gmail.com",
+  "password": "jake123"
+}
+
+### Update env
+POST http://localhost:4001/api/system/update-env
+content-type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJibGFrZUBnbWFpbC5jb20iLCJpYXQiOjE2OTg5MTM3NzksImV4cCI6MTcwMTUwNTc3OX0.msHga8K6wx70kcdPR0QASRZWUrj_CzcDjlioqFG98YU
+
+{
+  "LLMProvider": "blake@gmail.com"
+}
+
+### Create a namespace
+POST http://localhost:4001/api/workspace/new
+content-type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJibGFrZUBnbWFpbC5jb20iLCJpYXQiOjE2OTg5MTM3NzksImV4cCI6MTcwMTUwNTc3OX0.msHga8K6wx70kcdPR0QASRZWUrj_CzcDjlioqFG98YU
+
+{
+  "name": "workpace 101"
+}
