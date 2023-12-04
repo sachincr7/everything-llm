@@ -3,12 +3,27 @@ import { DocumentData, cachedVectorInformation } from '../../files';
 import { v4 as uuidv4 } from 'uuid';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import { getLLMProvider, toChunks } from '../../helpers';
+import { DocumentVectors } from '../../../models/vectors';
 
 type PinecodeInstance = {
   client: Pinecone;
   pineconeIndex: Index<RecordMetadata>;
   indexName: string;
 };
+
+interface VectorRecord {
+  id: string;
+  values: number[];
+  metadata: {
+    text: string;
+    id: string;
+    url: string;
+    title: string;
+    published: string;
+    wordCount: number;
+    token_count_estimate: number;
+  };
+}
 
 export class PineconeDB {
   private static instance: PinecodeInstance | null = null;
@@ -47,48 +62,18 @@ export class PineconeDB {
       if (!pageContent || pageContent.length == 0) return false;
 
       console.log('Adding new vectorized document into namespace', namespace);
-      // const cacheResult = await cachedVectorInformation(fullFilePath);
-
-      // if (typeof cacheResult === 'object' && 'exists' in cacheResult && cacheResult.exists) {
-      //   // Now TypeScript knows that cacheResult is an object with 'exists' property set to true
-      //   // You can access cacheResult.exists safely
-      //   const { pineconeIndex } = await this.connect();
-      //   const { chunks } = cacheResult;
-      //   const documentVectors = [];
-
-      //   for (const chunk of chunks) {
-      //     // Before sending to Pinecone and saving the records to our db
-      //     // we need to assign the id of each chunk that is stored in the cached file.
-
-      //     const newChunks = chunk.map((chunk: any) => {
-      //       const id = uuidv4();
-      //       documentVectors.push({ docId, vectorId: id });
-      //       return { ...chunk, id };
-      //     });
-
-      //     // Push chunks with new ids to pinecone.
-      //     await pineconeIndex.upsert({
-      //       values: [...chunks],
-      //       id: '23',
-      //       // upsertRequest: {
-      //       //   vectors: [...newChunks],
-      //       //   namespace,
-      //       // },
-      //     });
-      //   }
-      // }
 
       const textSplitter = new RecursiveCharacterTextSplitter({
         chunkSize: 1000,
         chunkOverlap: 20,
       });
-      const textChunks: string[] = await textSplitter.splitText(pageContent);
+      const textChunks = await textSplitter.splitText(pageContent);
 
       console.log('Chunks created from document:', textChunks.length);
       const LLMConnector = getLLMProvider();
 
       const documentVectors = [];
-      const vectors = [];
+      const vectors: VectorRecord[] = [];
       const vectorValues = await LLMConnector.embedChunks(textChunks);
 
       if (!!vectorValues && vectorValues.length > 0) {
@@ -110,22 +95,25 @@ export class PineconeDB {
       }
 
       if (vectors.length > 0) {
-        const chunks = [];
         const { pineconeIndex } = await this.connect();
-        for (const chunk of toChunks(vectors, 100)) {
+        for (const chunk of toChunks<VectorRecord>(vectors, 100)) {
           console.log('Inserting vectorized chunks into Pinecone.');
-          chunks.push(chunk[0]);
+          pineconeIndex.upsert(
+            chunk.map((c) => {
+              return {
+                id: namespace,
+                values: c.values,
+              };
+            })
+          );
         }
-        pineconeIndex.upsert(chunks);
       }
-
-      return {
-        documentVectors,
-        vectors,
-      };
-    } catch (error) {
-      console.log(error);
-
+      await DocumentVectors.bulkInsert(documentVectors);
+      return true;
+    } catch (error: any) {
+      console.error(error);
+      console.error('addDocumentToNamespace', error.message);
+      return false;
     }
   }
 }

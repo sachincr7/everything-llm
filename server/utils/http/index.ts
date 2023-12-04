@@ -24,7 +24,7 @@ function decodeJWT(jwtToken: string) {
   return { p: null, id: null, username: null };
 }
 
-const userFromSession = async (request: Request, response: Response | null = null) => {
+const userFromSession = async (request: Request, response: Response | null = null): Promise<users | null> => {
   if (!!response && !!response.locals?.user) {
     return response.locals.user;
   }

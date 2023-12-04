@@ -24,7 +24,7 @@ class DocumentVectors {
                 vectorRecords.forEach((record) => {
                     inserts.push(prisma_1.default.document_vectors.create({
                         data: {
-                            docId: record.docId,
+                            docId: record === null || record === void 0 ? void 0 : record.docId,
                             vectorId: record.vectorId,
                         },
                     }));
@@ -33,7 +33,7 @@ class DocumentVectors {
                 return { documentsInserted: inserts.length };
             }
             catch (error) {
-                console.error("Bulk insert failed", error);
+                console.error('Bulk insert failed', error);
                 return { documentsInserted: 0 };
             }
         });

@@ -24,17 +24,18 @@ class OpenAi {
         // Arbitrary limit to ensure we stay within reasonable POST request size.
         this.embeddingChunkLimit = 1000;
     }
-    // async embedTextInput(textInput: string) {
-    //   const result = await this.embedChunks(textInput);
-    //   return result?.[0] || [];
-    // }
+    embedTextInput(textInput) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = yield this.embedChunks(textInput);
+            return (result === null || result === void 0 ? void 0 : result[0]) || [];
+        });
+    }
     embedChunks(textChunks = []) {
         return __awaiter(this, void 0, void 0, function* () {
             // Because there is a hard POST limit on how many chunks can be sent at once to OpenAI (~8mb)
             // we concurrently execute each max batch of text chunks possible.
             // Refer to constructor embeddingChunkLimit for more info.
             const embeddingRequests = [];
-            console.log((0, helpers_1.toChunks)(textChunks, this.embeddingChunkLimit));
             for (const chunk of (0, helpers_1.toChunks)(textChunks, this.embeddingChunkLimit)) {
                 embeddingRequests.push(new Promise((resolve) => {
                     this.openai.embeddings
@@ -74,10 +75,7 @@ class OpenAi {
             });
             if (!!error)
                 throw new Error(`OpenAI Failed to embed: ${error}`);
-            return data.length > 0 &&
-                data.every((embd) => embd.hasOwnProperty("embedding"))
-                ? data.map((embd) => embd.embedding)
-                : null;
+            return data.length > 0 && data.every((embd) => embd.hasOwnProperty('embedding')) ? data.map((embd) => embd.embedding) : null;
         });
     }
 }

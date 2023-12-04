@@ -17,7 +17,7 @@ export class Document {
       const data = await fileData(path);
       if (!data) continue;
 
-      const docId = uuidv4();
+      const docId: string = uuidv4();
       const { pageContent, ...metadata } = data;
       const newDoc = {
         docId,
@@ -44,7 +44,7 @@ export class Document {
         console.error(error.message);
       }
 
-      return { failed: failedToEmbed, embedded, vectorized };
+      return { failed: failedToEmbed, embedded };
     }
   }
 

@@ -62,7 +62,7 @@ class Document {
                 catch (error) {
                     console.error(error.message);
                 }
-                return { failed: failedToEmbed, embedded, vectorized };
+                return { failed: failedToEmbed, embedded };
             }
         });
     }

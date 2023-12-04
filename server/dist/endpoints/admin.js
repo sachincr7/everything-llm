@@ -35,9 +35,9 @@ function adminEndpoints(app) {
                 response.sendStatus(401).end();
                 return;
             }
-            const newUserParams = (0, http_1.reqBody)(request);
+            const { username, password, role = 'default' } = request.body;
             const userExists = yield user_1.UserModel.get({
-                username: newUserParams.username,
+                username,
             });
             if (userExists) {
                 response.status(400).json({
@@ -45,7 +45,11 @@ function adminEndpoints(app) {
                 });
                 return;
             }
-            const { user: newUser, error } = yield user_1.UserModel.create(newUserParams);
+            const { user: newUser, error } = yield user_1.UserModel.create({
+                username,
+                password,
+                role,
+            });
             response.status(200).json({ user: newUser, error });
         }
         catch (e) {
@@ -104,7 +108,7 @@ function adminEndpoints(app) {
             response.sendStatus(500).end();
         }
     }));
-    // Soft Delete a user 
+    // Soft Delete a user
     app.delete('/admin/user/:id', [validatedRequest_1.validatedRequest], (request, response) => __awaiter(this, void 0, void 0, function* () {
         try {
             const user = yield (0, http_1.userFromSession)(request, response);

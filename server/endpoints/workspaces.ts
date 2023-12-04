@@ -4,6 +4,13 @@ import { multiUserMode, reqBody, userFromSession } from '../utils/http';
 import { Workspace } from '../models/workspaces';
 import { Document } from '../models/documents';
 
+interface UpdateEmbeddingsRequestBody extends Request {
+  body: {
+    adds: string[],
+    deletes: string[],
+  }
+}
+
 export const workspaceEndpoints = (app: Router) => {
   if (!app) return;
 
@@ -23,6 +30,11 @@ export const workspaceEndpoints = (app: Router) => {
   app.put('/workspace/:slug/update', [validatedRequest], async (request: Request, response: Response) => {
     try {
       const user = await userFromSession(request, response);
+      if (!user) {
+        response.sendStatus(400).end();
+        return;
+      }
+
       const { slug = null } = request.params;
       const data = reqBody(request);
       const currentWorkspace = multiUserMode(response) ? await Workspace.getWithUser(user, { slug }) : await Workspace.get({ slug });
@@ -43,6 +55,11 @@ export const workspaceEndpoints = (app: Router) => {
   app.get('/workspaces', [validatedRequest], async (request: Request, response: Response) => {
     try {
       const user = await userFromSession(request, response);
+      if (!user) {
+        response.sendStatus(400).end();
+        return;
+      }
+
       const workspaces = multiUserMode(response) ? await Workspace.whereWithUser(user) : await Workspace.where();
 
       response.status(200).json({ workspaces });
@@ -56,6 +73,11 @@ export const workspaceEndpoints = (app: Router) => {
     try {
       const { slug } = request.params;
       const user = await userFromSession(request, response);
+      if (!user) {
+        response.sendStatus(400).end();
+        return;
+      }
+
       const workspace = multiUserMode(response) ? await Workspace.getWithUser(user, { slug }) : await Workspace.get({ slug });
 
       response.status(200).json({ workspace });
@@ -65,11 +87,16 @@ export const workspaceEndpoints = (app: Router) => {
     }
   });
 
-  app.post('/workspace/:slug/update-embeddings', [validatedRequest], async (request: Request, response: Response) => {
+  app.post('/workspace/:slug/update-embeddings', [validatedRequest], async (request: UpdateEmbeddingsRequestBody, response: Response) => {
     try {
       const user = await userFromSession(request, response);
+      if (!user) {
+        response.sendStatus(400).end();
+        return;
+      }
+
       const { slug = null } = request.params;
-      const { adds = [], deletes = [] } = reqBody(request);
+      const { adds = [], deletes = [] } = request.body;
       const currWorkspace = multiUserMode(response) ? await Workspace.getWithUser(user, { slug }) : await Workspace.get({ slug });
 
       if (!currWorkspace) {
@@ -77,10 +104,7 @@ export const workspaceEndpoints = (app: Router) => {
         return;
       }
 
-      const data = (await Document.addDocuments(currWorkspace, adds)) as {
-        failed: string[];
-        embedded: string[];
-      };
+      const data = await Document.addDocuments(currWorkspace, adds);
 
       response.status(200).json({
         data,

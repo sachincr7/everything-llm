@@ -3,11 +3,19 @@ import { UserModel } from '../models/user';
 import { validatedRequest } from '../utils/middleware/validatedRequest';
 import { isAdmin, reqBody, userFromSession } from '../utils/http';
 
+interface CreateUserRequestWithBody extends Request {
+  body: {
+    username: string;
+    password: string;
+    role: string;
+  };
+}
+
 function adminEndpoints(app: Router) {
   if (!app) return;
 
   // Create a user
-  app.post('/admin/users/new', [validatedRequest], async (request: Request, response: Response) => {
+  app.post('/admin/users/new', [validatedRequest], async (request: CreateUserRequestWithBody, response: Response) => {
     try {
       const user = await userFromSession(request, response);
       if (!user || user?.role !== 'admin') {
@@ -15,10 +23,10 @@ function adminEndpoints(app: Router) {
         return;
       }
 
-      const newUserParams = reqBody(request);
+      const { username, password, role = 'default' } = request.body;
 
       const userExists = await UserModel.get({
-        username: newUserParams.username,
+        username,
       });
 
       if (userExists) {
@@ -28,7 +36,11 @@ function adminEndpoints(app: Router) {
         return;
       }
 
-      const { user: newUser, error } = await UserModel.create(newUserParams);
+      const { user: newUser, error } = await UserModel.create({
+        username,
+        password,
+        role,
+      });
       response.status(200).json({ user: newUser, error });
     } catch (e) {
       console.error(e);
@@ -93,7 +105,7 @@ function adminEndpoints(app: Router) {
     }
   });
 
-  // Soft Delete a user 
+  // Soft Delete a user
   app.delete('/admin/user/:id', [validatedRequest], async (request: Request, response: Response) => {
     try {
       const user = await userFromSession(request, response);

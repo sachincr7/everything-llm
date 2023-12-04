@@ -3,9 +3,9 @@ import { toChunks } from '../../helpers';
 import { CreateEmbeddingResponse, Embedding } from 'openai/resources';
 
 type CreateEmbeddingResponseType = {
-  data: Embedding[],
-  error: any
-}
+  data: Embedding[];
+  error: any;
+};
 
 export class OpenAi {
   private openai;
@@ -21,24 +21,23 @@ export class OpenAi {
     this.embeddingChunkLimit = 1_000;
   }
 
-  // async embedTextInput(textInput: string) {
-  //   const result = await this.embedChunks(textInput);
-  //   return result?.[0] || [];
-  // }
+  async embedTextInput(textInput: string[]) {
+    const result = await this.embedChunks(textInput);
+    return result?.[0] || [];
+  }
 
   async embedChunks(textChunks: string[] = []) {
     // Because there is a hard POST limit on how many chunks can be sent at once to OpenAI (~8mb)
     // we concurrently execute each max batch of text chunks possible.
     // Refer to constructor embeddingChunkLimit for more info.
- 
+
     const embeddingRequests: Promise<CreateEmbeddingResponseType>[] = [];
-    console.log(toChunks(textChunks, this.embeddingChunkLimit));
-    for (const chunk of toChunks(textChunks, this.embeddingChunkLimit)) {
+    for (const chunk of toChunks<string>(textChunks, this.embeddingChunkLimit)) {
       embeddingRequests.push(
         new Promise((resolve) => {
           this.openai.embeddings
             .create({
-              input: chunk, 
+              input: chunk,
               model: 'text-embedding-ada-002',
             })
             .then((res) => {
@@ -49,7 +48,6 @@ export class OpenAi {
             })
             .catch((e: any) => {
               console.log(e);
-
               resolve({ data: [], error: e?.error });
             });
         })
@@ -69,7 +67,6 @@ export class OpenAi {
           error: `(${errors.length}) Embedding Errors! ${errors.map((error) => `[${error.type}]: ${error.message}`).join(', ')}`,
         };
       }
-  
       return {
         data: results.map((res) => res?.data || []).flat(),
         error: null,
@@ -77,9 +74,6 @@ export class OpenAi {
     });
 
     if (!!error) throw new Error(`OpenAI Failed to embed: ${error}`);
-    return data.length > 0 &&
-      data.every((embd) => embd.hasOwnProperty("embedding"))
-      ? data.map((embd) => embd.embedding)
-      : null;
+    return data.length > 0 && data.every((embd) => embd.hasOwnProperty('embedding')) ? data.map((embd) => embd.embedding) : null;
   }
 }

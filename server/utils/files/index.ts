@@ -10,7 +10,7 @@ export type DocumentData = {
   wordCount: number,
   pageContent: string,
   token_count_estimate: number
-  docId?: string
+  docId: string
 }
 
 // Should take in a folder that is a subfolder of documents

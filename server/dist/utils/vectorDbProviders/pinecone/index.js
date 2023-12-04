@@ -25,6 +25,7 @@ const pinecone_1 = require("@pinecone-database/pinecone");
 const uuid_1 = require("uuid");
 const text_splitter_1 = require("langchain/text_splitter");
 const helpers_1 = require("../../helpers");
+const vectors_1 = require("../../../models/vectors");
 class PineconeDB {
     static connect() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -60,32 +61,6 @@ class PineconeDB {
                 if (!pageContent || pageContent.length == 0)
                     return false;
                 console.log('Adding new vectorized document into namespace', namespace);
-                // const cacheResult = await cachedVectorInformation(fullFilePath);
-                // if (typeof cacheResult === 'object' && 'exists' in cacheResult && cacheResult.exists) {
-                //   // Now TypeScript knows that cacheResult is an object with 'exists' property set to true
-                //   // You can access cacheResult.exists safely
-                //   const { pineconeIndex } = await this.connect();
-                //   const { chunks } = cacheResult;
-                //   const documentVectors = [];
-                //   for (const chunk of chunks) {
-                //     // Before sending to Pinecone and saving the records to our db
-                //     // we need to assign the id of each chunk that is stored in the cached file.
-                //     const newChunks = chunk.map((chunk: any) => {
-                //       const id = uuidv4();
-                //       documentVectors.push({ docId, vectorId: id });
-                //       return { ...chunk, id };
-                //     });
-                //     // Push chunks with new ids to pinecone.
-                //     await pineconeIndex.upsert({
-                //       values: [...chunks],
-                //       id: '23',
-                //       // upsertRequest: {
-                //       //   vectors: [...newChunks],
-                //       //   namespace,
-                //       // },
-                //     });
-                //   }
-                // }
                 const textSplitter = new text_splitter_1.RecursiveCharacterTextSplitter({
                     chunkSize: 1000,
                     chunkOverlap: 20,
@@ -114,21 +89,24 @@ class PineconeDB {
                     throw new Error('Could not embed document chunks! This document will not be recorded.');
                 }
                 if (vectors.length > 0) {
-                    const chunks = [];
                     const { pineconeIndex } = yield this.connect();
                     for (const chunk of (0, helpers_1.toChunks)(vectors, 100)) {
                         console.log('Inserting vectorized chunks into Pinecone.');
-                        chunks.push(chunk[0]);
+                        pineconeIndex.upsert(chunk.map((c) => {
+                            return {
+                                id: namespace,
+                                values: c.values,
+                            };
+                        }));
                     }
-                    pineconeIndex.upsert(chunks);
                 }
-                return {
-                    documentVectors,
-                    vectors,
-                };
+                yield vectors_1.DocumentVectors.bulkInsert(documentVectors);
+                return true;
             }
             catch (error) {
-                console.log(error);
+                console.error(error);
+                console.error('addDocumentToNamespace', error.message);
+                return false;
             }
         });
     }

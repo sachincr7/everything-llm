@@ -32,6 +32,10 @@ const workspaceEndpoints = (app) => {
     app.put('/workspace/:slug/update', [validatedRequest_1.validatedRequest], (request, response) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             const user = yield (0, http_1.userFromSession)(request, response);
+            if (!user) {
+                response.sendStatus(400).end();
+                return;
+            }
             const { slug = null } = request.params;
             const data = (0, http_1.reqBody)(request);
             const currentWorkspace = (0, http_1.multiUserMode)(response) ? yield workspaces_1.Workspace.getWithUser(user, { slug }) : yield workspaces_1.Workspace.get({ slug });
@@ -50,6 +54,10 @@ const workspaceEndpoints = (app) => {
     app.get('/workspaces', [validatedRequest_1.validatedRequest], (request, response) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             const user = yield (0, http_1.userFromSession)(request, response);
+            if (!user) {
+                response.sendStatus(400).end();
+                return;
+            }
             const workspaces = (0, http_1.multiUserMode)(response) ? yield workspaces_1.Workspace.whereWithUser(user) : yield workspaces_1.Workspace.where();
             response.status(200).json({ workspaces });
         }
@@ -62,6 +70,10 @@ const workspaceEndpoints = (app) => {
         try {
             const { slug } = request.params;
             const user = yield (0, http_1.userFromSession)(request, response);
+            if (!user) {
+                response.sendStatus(400).end();
+                return;
+            }
             const workspace = (0, http_1.multiUserMode)(response) ? yield workspaces_1.Workspace.getWithUser(user, { slug }) : yield workspaces_1.Workspace.get({ slug });
             response.status(200).json({ workspace });
         }
@@ -73,14 +85,18 @@ const workspaceEndpoints = (app) => {
     app.post('/workspace/:slug/update-embeddings', [validatedRequest_1.validatedRequest], (request, response) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             const user = yield (0, http_1.userFromSession)(request, response);
+            if (!user) {
+                response.sendStatus(400).end();
+                return;
+            }
             const { slug = null } = request.params;
-            const { adds = [], deletes = [] } = (0, http_1.reqBody)(request);
+            const { adds = [], deletes = [] } = request.body;
             const currWorkspace = (0, http_1.multiUserMode)(response) ? yield workspaces_1.Workspace.getWithUser(user, { slug }) : yield workspaces_1.Workspace.get({ slug });
             if (!currWorkspace) {
                 response.sendStatus(400).end();
                 return;
             }
-            const data = (yield documents_1.Document.addDocuments(currWorkspace, adds));
+            const data = yield documents_1.Document.addDocuments(currWorkspace, adds);
             response.status(200).json({
                 data,
             });
