@@ -8,7 +8,7 @@
     "setup": "cd server && npm i && cd ../frontend && npm i && cd .. && npm i setup:envs && npm i prisma:setup && echo \"Please run npm run dev:server and npm run dev:frontend in separate terminal tabs.\"",
     "setup:envs": "cp -n ./frontend/.env.example ./frontend/.env && cp -n ./server/.env.example ./server/.env.development && cp -n ./collector/.env.example ./collector/.env && cp -n ./docker/.env.example ./docker/.env && echo \"All ENV files copied!\n\"",
     "dev:server": "cd server && npm run dev",
-    "dev:frontend": "cd frontend && yarn start",
+    "dev:frontend": "cd frontend && npm start",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prisma:generate": "cd server && npx prisma generate",
     "prisma:migrate": "cd server && npx prisma migrate dev --name init",
