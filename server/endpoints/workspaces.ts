@@ -3,6 +3,7 @@ import { validatedRequest } from '../utils/middleware/validatedRequest';
 import { multiUserMode, reqBody, userFromSession } from '../utils/http';
 import { Workspace } from '../models/workspaces';
 import { Document } from '../models/documents';
+import { updateEmbeddings } from '../controllers/workspaces/updateEmbeddings';
 
 interface UpdateEmbeddingsRequestBody extends Request {
   body: {
@@ -87,31 +88,5 @@ export const workspaceEndpoints = (app: Router) => {
     }
   });
 
-  app.post('/workspace/:slug/update-embeddings', [validatedRequest], async (request: UpdateEmbeddingsRequestBody, response: Response) => {
-    try {
-      const user = await userFromSession(request, response);
-      if (!user) {
-        response.sendStatus(400).end();
-        return;
-      }
-
-      const { slug = null } = request.params;
-      const { adds = [], deletes = [] } = request.body;
-      const currWorkspace = multiUserMode(response) ? await Workspace.getWithUser(user, { slug }) : await Workspace.get({ slug });
-
-      if (!currWorkspace) {
-        response.sendStatus(400).end();
-        return;
-      }
-
-      const data = await Document.addDocuments(currWorkspace, adds);
-
-      response.status(200).json({
-        data,
-      });
-    } catch (e: any) {
-      console.log(e.message, e);
-      response.sendStatus(500).end();
-    }
-  });
+  app.post('/workspace/:slug/update-embeddings', [validatedRequest], updateEmbeddings);
 };

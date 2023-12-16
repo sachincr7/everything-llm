@@ -29,7 +29,7 @@ const files_1 = require("../utils/files");
 const uuid_1 = require("uuid");
 const prisma_1 = __importDefault(require("../utils/prisma"));
 class Document {
-    static addDocuments(workspace, additions = []) {
+    static addDocuments(workspace, additions = [], deletes) {
         return __awaiter(this, void 0, void 0, function* () {
             const VectorDb = (0, helpers_1.getVectorDbClass)();
             if (additions.length === 0)

@@ -13,7 +13,7 @@ exports.workspaceEndpoints = void 0;
 const validatedRequest_1 = require("../utils/middleware/validatedRequest");
 const http_1 = require("../utils/http");
 const workspaces_1 = require("../models/workspaces");
-const documents_1 = require("../models/documents");
+const updateEmbeddings_1 = require("../controllers/workspaces/updateEmbeddings");
 const workspaceEndpoints = (app) => {
     if (!app)
         return;
@@ -82,29 +82,6 @@ const workspaceEndpoints = (app) => {
             response.sendStatus(500).end();
         }
     }));
-    app.post('/workspace/:slug/update-embeddings', [validatedRequest_1.validatedRequest], (request, response) => __awaiter(void 0, void 0, void 0, function* () {
-        try {
-            const user = yield (0, http_1.userFromSession)(request, response);
-            if (!user) {
-                response.sendStatus(400).end();
-                return;
-            }
-            const { slug = null } = request.params;
-            const { adds = [], deletes = [] } = request.body;
-            const currWorkspace = (0, http_1.multiUserMode)(response) ? yield workspaces_1.Workspace.getWithUser(user, { slug }) : yield workspaces_1.Workspace.get({ slug });
-            if (!currWorkspace) {
-                response.sendStatus(400).end();
-                return;
-            }
-            const data = yield documents_1.Document.addDocuments(currWorkspace, adds);
-            response.status(200).json({
-                data,
-            });
-        }
-        catch (e) {
-            console.log(e.message, e);
-            response.sendStatus(500).end();
-        }
-    }));
+    app.post('/workspace/:slug/update-embeddings', [validatedRequest_1.validatedRequest], updateEmbeddings_1.updateEmbeddings);
 };
 exports.workspaceEndpoints = workspaceEndpoints;

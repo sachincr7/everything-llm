@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import prisma from "../utils/prisma";
 
 export class Document {
-  static async addDocuments(workspace: workspaces, additions: string[] = []) {
+  static async addDocuments(workspace: workspaces, additions: string[] = [], deletes: string[]) {
     const VectorDb = getVectorDbClass();
 
     if (additions.length === 0) return;
