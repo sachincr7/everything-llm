@@ -1,10 +1,12 @@
 import React, { createContext, useState } from 'react';
 import { AUTH_TIMESTAMP, AUTH_TOKEN, AUTH_USER } from './utils/constants';
 
-export const AuthContext = createContext<{
+type Auth = {
   store: { user: any; authToken: string | null };
   actions: { updateUser: (user: any, authToken?: string) => void; unsetUser: () => void };
-} | null>(null);
+} | null;
+
+export const AuthContext = createContext<Auth>(null);
 export const ContextWrapper = (props: any) => {
   const localUser = localStorage.getItem(AUTH_USER);
   const localAuthToken = localStorage.getItem(AUTH_TOKEN);
