@@ -28,6 +28,7 @@ const systemEndpoints = (app) => {
     });
     app.get('/setup-complete', (_, response) => __awaiter(void 0, void 0, void 0, function* () {
         try {
+            console.log('yoo');
             const results = yield systemSettings_1.SystemSettings.currentSettings();
             response.status(200).json({ results });
         }

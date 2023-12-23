@@ -17,6 +17,7 @@ export const systemEndpoints = (app: Router) => {
 
   app.get('/setup-complete', async (_, response) => {
     try {
+      console.log('yoo');
       const results = await SystemSettings.currentSettings();
       response.status(200).json({ results });
     } catch (error: any) {

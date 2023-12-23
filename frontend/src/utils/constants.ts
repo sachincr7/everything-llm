@@ -1,4 +1,4 @@
-export const API_BASE = "/api";
+export const API_BASE: string = process.env.REACT_APP_API_URL!;
 
 export const AUTH_USER = "everythingllm_user";
 export const AUTH_TOKEN = "everythingllm_authToken";
