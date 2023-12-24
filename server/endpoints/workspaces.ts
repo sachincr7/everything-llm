@@ -1,92 +1,21 @@
-import { Request, Response, Router } from 'express';
+import { Router } from 'express';
 import { validatedRequest } from '../utils/middleware/validatedRequest';
-import { multiUserMode, reqBody, userFromSession } from '../utils/http';
-import { Workspace } from '../models/workspaces';
-import { Document } from '../models/documents';
 import { updateEmbeddings } from '../controllers/workspaces/updateEmbeddings';
-
-interface UpdateEmbeddingsRequestBody extends Request {
-  body: {
-    adds: string[],
-    deletes: string[],
-  }
-}
+import { createNewWorkspace } from '../controllers/workspaces/createNewWorkspace';
+import { updateWorkspace } from '../controllers/workspaces/updateWorkspace';
+import { getWorkspaces } from '../controllers/workspaces/getWorkspaces';
+import { GetWorkspace } from '../controllers/workspaces/getWorkspace';
 
 export const workspaceEndpoints = (app: Router) => {
   if (!app) return;
 
-  app.post('/workspace/new', [validatedRequest], async (request: Request, response: Response) => {
-    try {
-      const user = await userFromSession(request, response);
-      const { name = null, onboardingComplete = false } = reqBody(request);
-      const { workspace, message } = await Workspace.new(name, user?.id);
+  app.post('/workspace/new', [validatedRequest], createNewWorkspace);
 
-      response.status(200).json({ workspace, message });
-    } catch (error: any) {
-      console.log(error.message, error);
-      response.sendStatus(500).end();
-    }
-  });
+  app.put('/workspace/:slug/update', [validatedRequest], updateWorkspace);
 
-  app.put('/workspace/:slug/update', [validatedRequest], async (request: Request, response: Response) => {
-    try {
-      const user = await userFromSession(request, response);
-      if (!user) {
-        response.sendStatus(400).end();
-        return;
-      }
+  app.get('/workspaces', [validatedRequest], getWorkspaces);
 
-      const { slug = null } = request.params;
-      const data = reqBody(request);
-      const currentWorkspace = multiUserMode(response) ? await Workspace.getWithUser(user, { slug }) : await Workspace.get({ slug });
-
-      if (!currentWorkspace) {
-        response.sendStatus(400).end();
-        return;
-      }
-
-      const { workspace, message } = await Workspace.update(currentWorkspace.id, data);
-      response.status(200).json({ workspace, message });
-    } catch (e: any) {
-      console.log(e.message, e);
-      response.sendStatus(500).end();
-    }
-  });
-
-  app.get('/workspaces', [validatedRequest], async (request: Request, response: Response) => {
-    try {
-      const user = await userFromSession(request, response);
-      if (!user) {
-        response.sendStatus(400).end();
-        return;
-      }
-
-      const workspaces = multiUserMode(response) ? await Workspace.whereWithUser(user) : await Workspace.where();
-
-      response.status(200).json({ workspaces });
-    } catch (e: any) {
-      console.log(e.message, e);
-      response.sendStatus(500).end();
-    }
-  });
-
-  app.get('/workspace/:slug', [validatedRequest], async (request: Request, response: Response) => {
-    try {
-      const { slug } = request.params;
-      const user = await userFromSession(request, response);
-      if (!user) {
-        response.sendStatus(400).end();
-        return;
-      }
-
-      const workspace = multiUserMode(response) ? await Workspace.getWithUser(user, { slug }) : await Workspace.get({ slug });
-
-      response.status(200).json({ workspace });
-    } catch (e: any) {
-      console.log(e.message, e);
-      response.sendStatus(500).end();
-    }
-  });
+  app.get('/workspace/:slug', [validatedRequest], GetWorkspace);
 
   app.post('/workspace/:slug/update-embeddings', [validatedRequest], updateEmbeddings);
 };

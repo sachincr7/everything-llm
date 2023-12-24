@@ -58,6 +58,6 @@ function makeJWT(info = {}, expiry = '30d') {
   return JWT.sign(info, process.env.JWT_SECRET, { expiresIn: expiry });
 }
 
-const isAdmin = (user: users | null): Boolean | null => (user && user.role === 'admin') ?? null;
+const isAdmin = (user: users | null): Boolean => (user?.role === 'admin') ?? false;
 
 export { reqBody, multiUserMode, decodeJWT, userFromSession, getAuthToken, makeJWT, queryParams, isAdmin };
